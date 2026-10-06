@@ -4,17 +4,20 @@ Module.register("MMM-PublicTransit", {
     showlogo: true,
     global_stop_ids: "",
     apiKey: "",
-    displayed_entries: 3, // Number of bus times to display (default for all stations)
+    displayedEntries: 3, // Number of bus times to display (default for all stations)
     fontsize: "24px", // Font size for bus times
     logoLocation: "flex-end", // Logo alignment (flex-start, flex-end)
     activeHoursStart: 6,  // Active hours for the module (24-hour format)
     activeHoursEnd: 22,
     activeDays: [0, 1, 2, 3, 4, 5, 6], // Active days of the week (0 = Sunday, 6 = Saturday)
-    updateFrequency: 30, // Update frequency in minutes
+    updateFrequency: 5, // Update frequency in minutes
     showHeadSign: false, // If true: shows "Number + Name". If false: shows "Number".
     showTime: false, // If true: shows absolute time (e.g. 12:45pm) next to minutes.
     stationNames: {}, // Custom station names: { 'ABC:1234': 'My Station Name' }
-    stationDisplayedEntries: {} // Per-station entry limits: { 'ABC:1234': 5, 'XYZ:5678': 2 }
+    stationDisplayedEntries: {}, // Per-station entry limits: { 'ABC:1234': 5, 'XYZ:5678': 2 }
+    removecancelled: true, //Remove cancelled departures
+    locale: "en", //local strings, multiple can be specified in comma list "en,fr"
+    apiversion: "v4"
   },
 
   getStyles() {
@@ -27,24 +30,27 @@ Module.register("MMM-PublicTransit", {
   start() {
     this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
 
-    this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
-      apiKey: this.config.apiKey,
-      global_stop_ids: this.config.global_stop_ids,
-      showHeadSign: this.config.showHeadSign,
-      activeHours: this.activeHours()
-    });
+    fetchSchedule();
 
     setInterval(
       () =>
-        this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
-          apiKey: this.config.apiKey,
-          global_stop_ids: this.config.global_stop_ids,
-          showHeadSign: this.config.showHeadSign,
-          activeHours: this.activeHours()
-        }),
+        fetchSchedule,
       this.config.updateFrequency * 60 * 1000
     );
     setInterval(() => this.updateDom(), 30000);
+  },
+
+  fetchSchedule() {
+    this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
+      apiKey: this.config.apiKey,
+      api_version: this.config.api_version,
+      remove_cancelled: this.config.removecancelled ?? true,
+      max_num_departures: this.config.displayedEntries,
+      global_stop_ids: this.config.global_stop_ids,
+      showHeadSign: this.config.showHeadSign,
+      locale: this.config.locale,
+      activeHours: this.activeHours()
+    });
   },
 
   notificationReceived(notification, payload) {},
