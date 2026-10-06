@@ -1,22 +1,24 @@
 const NodeHelper = require("node_helper");
-const { URL } = require("url"); // Ensure URL is available
+const { URL } = require("url");
 
 module.exports = NodeHelper.create({
   async socketNotificationReceived(notification, payload) {
     
-    if (!payload.activeHours) {
-      //console.log("Outside active hours, skipping API Calls.");
-      return; // Exit if activeHours is not defined
+    console.log("[DEBUG] activeHours: " + JSON.stringify(payload.activeHours));
+    
+    if (!payload.activeHours) { //This feels wrong
+      console.log("Active hours not defined, skipping API Calls.");
+      return;
     }
 
     if (notification === "FETCH_BUS_SCHEDULE") {
       try {
-        // Parse global_stop_ids and make a request for each stop
+        // TODO: this is a fast track to throttling
         const stopIds = payload.global_stop_ids.split(',').map(id => id.trim());
         const result = [];
         
         for (const stopId of stopIds) {
-          const baseUrl = 'https://external.transitapp.com/v3/public/stop_departures';
+          const baseUrl = 'https://external.transitapp.com/v4/public/stop_departures';
           const url = new URL(baseUrl);
           url.searchParams.append('global_stop_ids', stopId);
           url.searchParams.append('remove_cancelled', 'true');
