@@ -10,14 +10,14 @@ Module.register("MMM-PublicTransit", {
     activeHoursStart: 6,  // Active hours for the module (24-hour format)
     activeHoursEnd: 22,
     activeDays: [0, 1, 2, 3, 4, 5, 6], // Active days of the week (0 = Sunday, 6 = Saturday)
-    updateFrequency: 5, // Update frequency in minutes
+    updateFrequency: 30, // Update frequency in minutes
     showHeadSign: false, // If true: shows "Number + Name". If false: shows "Number".
     showTime: false, // If true: shows absolute time (e.g. 12:45pm) next to minutes.
     stationNames: {}, // Custom station names: { 'ABC:1234': 'My Station Name' }
     stationDisplayedEntries: {}, // Per-station entry limits: { 'ABC:1234': 5, 'XYZ:5678': 2 }
-    removecancelled: true, //Remove cancelled departures
+    removeCancelled: true, //Remove cancelled departures
     locale: "en", //local strings, multiple can be specified in comma list "en,fr"
-    apiversion: "v4"
+    apiVersion: "v4"
   },
 
   getStyles() {
@@ -30,11 +30,9 @@ Module.register("MMM-PublicTransit", {
   start() {
     this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
 
-    fetchSchedule();
+    this.fetchSchedule();
 
-    setInterval(
-      () =>
-        fetchSchedule,
+    setInterval(this.fetchSchedule(),
       this.config.updateFrequency * 60 * 1000
     );
     setInterval(() => this.updateDom(), 30000);
@@ -43,8 +41,8 @@ Module.register("MMM-PublicTransit", {
   fetchSchedule() {
     this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
       apiKey: this.config.apiKey,
-      api_version: this.config.api_version,
-      remove_cancelled: this.config.removecancelled ?? true,
+      api_version: this.config.apiVersion,
+      remove_cancelled: this.config.removeCancelled ?? true,
       max_num_departures: this.config.displayedEntries,
       global_stop_ids: this.config.global_stop_ids,
       showHeadSign: this.config.showHeadSign,
