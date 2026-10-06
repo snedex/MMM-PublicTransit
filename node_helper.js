@@ -51,6 +51,7 @@ module.exports = NodeHelper.create({
               
               mergedItinerary.schedule_items.forEach(scheduleItem => {
                 
+                //A list of itineraries is nested in the merge object
                 const itinerary = mergedItinerary.itineraries.find(item => 
                   item.internal_itinerary_id === scheduleItem.internal_itinerary_id);
 
@@ -62,42 +63,9 @@ module.exports = NodeHelper.create({
                   departure_time: scheduleItem.scheduled_departure_time,
                   route_id: route.real_time_route_id
                 });
-
               });
           });
         });
-
-        for (const stopId of stopIds) {
-          
-          const data = await response.json();
-          const routeDepartures = data.route_departures;
-          const stop = data.stop;
-          const stopName = stop ? stop.name : stopId;
-        
-          if (routeDepartures && Array.isArray(routeDepartures)) {
-            routeDepartures.forEach(route => {
-              if (route.itineraries && Array.isArray(route.itineraries)) {
-                route.itineraries.forEach(itinerary => {
-                  if (itinerary.schedule_items && Array.isArray(itinerary.schedule_items)) {
-                    itinerary.schedule_items.forEach(scheduleItem => {
-                        
-                        // Push all available data to the frontend including stop info
-                        result.push({
-                          global_stop_id: stopId,
-                          stop_name: stopName,
-                          route_short_name: route.route_short_name, 
-                          trip_headsign: itinerary.headsign,
-                          departure_time: scheduleItem.departure_time,
-                          route_id: route.real_time_route_id
-                        });
-
-                    });
-                  }
-                });
-              }
-            });
-          }
-        }
 
         // Sort the result by departure_time
         result.sort((a, b) => a.departure_time - b.departure_time);
