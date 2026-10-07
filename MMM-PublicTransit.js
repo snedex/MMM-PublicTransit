@@ -57,12 +57,7 @@ Module.register("MMM-PublicTransit", {
     setInterval(() => { this.updateDom(); }, 3000);
   },
 
-  notificationReceived(notification, payload) {},
-
   socketNotificationReceived: function (notification, payload) {
-
-    console.log(`[DEBUG] ${notification} notification received: ` + JSON.stringify(payload));
-
     if (notification === "UPDATE_BUS_SCHEDULE") {
       this.busSchedule = payload;
       this.updateDom();
@@ -70,8 +65,6 @@ Module.register("MMM-PublicTransit", {
   },
 
   getDom() {
-
-    console.log("[DEBUG] updateDom called");
 
     // Create the main container div
     const container = document.createElement("div");
@@ -108,8 +101,7 @@ Module.register("MMM-PublicTransit", {
 
     // Display each station group separately
     const stationCount = Object.keys(stationGroups).length;
-    console.log(`[DEBUG] Found ${stationCount} station(s)`);
-    
+
     Object.keys(stationGroups).forEach(stationId => {
       const station = stationGroups[stationId];
       
@@ -132,7 +124,7 @@ Module.register("MMM-PublicTransit", {
       // Get per-station entry limit, or fall back to global default
       const entriesForStation = this.config.stationDisplayedEntries[stationId] !== undefined 
         ? this.config.stationDisplayedEntries[stationId] 
-        : this.config.displayed_entries;
+        : this.config.displayedEntries;
 
       let entryCount = 0;
       let departureIndex = 0;
