@@ -39,7 +39,7 @@ module.exports = NodeHelper.create({
           throw new Error(`API request returned invalid route departures: ${JSON.stringify(data)}`);
         }
 
-        console.log("[DEBUG] API Response: " + JSON.stringify(result));
+        console.log("[DEBUG] API Response: " + JSON.stringify(data));
 
         const result = [];
 
