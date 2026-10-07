@@ -55,7 +55,7 @@ module.exports = NodeHelper.create({
                 const itinerary = mergedItinerary.itineraries.find(item => 
                   item.internal_itinerary_id === scheduleItem.internal_itinerary_id);
 
-                const result = {
+                const item = {
                   global_stop_id: route.global_stop_id,
                   stop_name: mergedItinerary.closest_stop.stop_name,
                   route_short_name: route.route_short_name, 
@@ -64,9 +64,9 @@ module.exports = NodeHelper.create({
                   route_id: route.real_time_route_id
                 };
 
-                console.log("[DEBUG] Schedule Item: " + JSON.stringify(result));
+                console.log("[DEBUG] Schedule Item: " + JSON.stringify(item));
 
-                result.push(result);
+                result.push(item);
               });
           });
         });
