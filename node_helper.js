@@ -12,6 +12,8 @@ module.exports = NodeHelper.create({
     if (notification === "FETCH_BUS_SCHEDULE") {
       try {
 
+        console.log("[DEBUG] Schedule API call.");
+
         const baseUrl = `https://external.transitapp.com/${payload.api_version}/public/stop_departures`;
         const url = new URL(baseUrl);
 

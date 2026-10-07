@@ -54,7 +54,7 @@ Module.register("MMM-PublicTransit", {
       });
     }, this.config.updateFrequency * 60 * 1000);
 
-    setInterval(() => this.updateDom(), 30000);
+    setInterval(() => { this.updateDom(); }, 3000);
   },
 
   notificationReceived(notification, payload) {},
@@ -108,7 +108,7 @@ Module.register("MMM-PublicTransit", {
 
     // Display each station group separately
     const stationCount = Object.keys(stationGroups).length;
-    console.log(`[DEBUG] Found ${stationCount} station(s)`)
+    console.log(`[DEBUG] Found ${stationCount} station(s)`);
     
     Object.keys(stationGroups).forEach(stationId => {
       const station = stationGroups[stationId];
