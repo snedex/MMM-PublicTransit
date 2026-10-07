@@ -60,6 +60,9 @@ Module.register("MMM-PublicTransit", {
   notificationReceived(notification, payload) {},
 
   socketNotificationReceived: function (notification, payload) {
+
+    console.log(`[DEBUG] ${notification} notification received: ` + JSON.stringify(payload));
+
     if (notification === "UPDATE_BUS_SCHEDULE") {
       this.busSchedule = payload;
       this.updateDom();
@@ -67,6 +70,9 @@ Module.register("MMM-PublicTransit", {
   },
 
   getDom() {
+
+    console.log("[DEBUG] updateDom called");
+
     // Create the main container div
     const container = document.createElement("div");
     container.style.display = "flex"; // Use flexbox for layout

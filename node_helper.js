@@ -39,8 +39,6 @@ module.exports = NodeHelper.create({
           throw new Error(`API request returned invalid route departures: ${JSON.stringify(data)}`);
         }
 
-        console.log("[DEBUG] API Response: " + JSON.stringify(data));
-
         const result = [];
 
         routeDepartures.forEach(route => {
@@ -55,16 +53,14 @@ module.exports = NodeHelper.create({
                 const itinerary = mergedItinerary.itineraries.find(item => 
                   item.internal_itinerary_id === scheduleItem.internal_itinerary_id);
 
-                const item = {
+                result.push({
                   global_stop_id: route.global_stop_id,
                   stop_name: mergedItinerary.closest_stop.stop_name,
                   route_short_name: route.route_short_name, 
                   trip_headsign: itinerary.merged_headsign,
                   departure_time: scheduleItem.scheduled_departure_time,
                   route_id: route.real_time_route_id
-                };
-
-                result.push(item);
+                });
               });
           });
         });
