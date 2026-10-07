@@ -36,8 +36,10 @@ module.exports = NodeHelper.create({
         const routeDepartures = data.route_departures;
 
         if (!routeDepartures || !Array.isArray(routeDepartures)) {
-          throw new Error(`API request returned invalid routeDepartures: ${JSON.stringify(data)}`);
+          throw new Error(`API request returned invalid route departures: ${JSON.stringify(data)}`);
         }
+
+        console.log("[DEBUG] API Response: " + JSON.stringify(result));
 
         const result = [];
 
@@ -53,14 +55,16 @@ module.exports = NodeHelper.create({
                 const itinerary = mergedItinerary.itineraries.find(item => 
                   item.internal_itinerary_id === scheduleItem.internal_itinerary_id);
 
-                result.push({
+                const item = {
                   global_stop_id: route.global_stop_id,
                   stop_name: mergedItinerary.closest_stop.stop_name,
                   route_short_name: route.route_short_name, 
                   trip_headsign: itinerary.merged_headsign,
                   departure_time: scheduleItem.scheduled_departure_time,
                   route_id: route.real_time_route_id
-                });
+                };
+
+                result.push(item);
               });
           });
         });
@@ -70,7 +74,7 @@ module.exports = NodeHelper.create({
         this.sendSocketNotification("UPDATE_BUS_SCHEDULE", result);
   
       } catch (error) {
-        console.error('Error fetching bus times:', error);
+        console.error('Error fetching transit times:', error);
       }
     }
   },

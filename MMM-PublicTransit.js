@@ -30,15 +30,6 @@ Module.register("MMM-PublicTransit", {
   start() {
     this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
 
-    this.fetchSchedule();
-
-    setInterval(this.fetchSchedule(),
-      this.config.updateFrequency * 60 * 1000
-    );
-    setInterval(() => this.updateDom(), 30000);
-  },
-
-  fetchSchedule() {
     this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
       apiKey: this.config.apiKey,
       api_version: this.config.apiVersion,
@@ -49,6 +40,21 @@ Module.register("MMM-PublicTransit", {
       locale: this.config.locale,
       activeHours: this.activeHours()
     });
+
+    setInterval(() => {
+      this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
+        apiKey: this.config.apiKey,
+        api_version: this.config.apiVersion,
+        remove_cancelled: this.config.removeCancelled ?? true,
+        max_num_departures: this.config.displayedEntries,
+        global_stop_ids: this.config.global_stop_ids,
+        showHeadSign: this.config.showHeadSign,
+        locale: this.config.locale,
+        activeHours: this.activeHours()
+      });
+    }, this.config.updateFrequency * 60 * 1000);
+
+    setInterval(() => this.updateDom(), 30000);
   },
 
   notificationReceived(notification, payload) {},
@@ -71,14 +77,14 @@ Module.register("MMM-PublicTransit", {
       const errorDiv = document.createElement("div");
       errorDiv.innerHTML = "API Key Required";
       container.appendChild(errorDiv);
-      return container; // Return early
+      return container; 
     }
 
     if (!this.activeHours()) {
       const inactiveDiv = document.createElement("div");
       inactiveDiv.innerHTML = "<p style='color:#555'>Inactive</p>";
       container.appendChild(inactiveDiv);
-      return container; // Return early if outside active hours
+      return container;
     }
 
     // Group departures by station
@@ -96,6 +102,7 @@ Module.register("MMM-PublicTransit", {
 
     // Display each station group separately
     const stationCount = Object.keys(stationGroups).length;
+    console.log(`[DEBUG] Found ${stationCount} station(s)`)
     
     Object.keys(stationGroups).forEach(stationId => {
       const station = stationGroups[stationId];
@@ -132,7 +139,7 @@ Module.register("MMM-PublicTransit", {
 
         //Are are filtering these out incorrectly?
         console.log("[DEBUG] sanity check departure time: " + stop.departure_time);
-        console.log("[DEBUG] sanity check filter time: " + (Date.now() / 1000).toString());
+        console.log("[DEBUG] sanity check filter time: " + (Date.now() / 1000));
 
         // Filter out past buses (tolerance 1 min)
         if (Math.round((stop.departure_time - Date.now() / 1000) / 60) < 1) {
