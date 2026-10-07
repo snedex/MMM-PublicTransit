@@ -124,8 +124,15 @@ Module.register("MMM-PublicTransit", {
       let entryCount = 0;
       let departureIndex = 0;
 
+      //Are we actually getting the departures for each stop?
+      console.log("[DEBUG] station departures: " + JSON.stringify(station.departures));
+
       while (departureIndex < station.departures.length && entryCount < entriesForStation) {
         let stop = station.departures[departureIndex];
+
+        //Are are filtering these out incorrectly?
+        console.log("[DEBUG] sanity check departure time: " + stop.departure_time);
+        console.log("[DEBUG] sanity check filter time: " + (Date.now() / 1000).toString());
 
         // Filter out past buses (tolerance 1 min)
         if (Math.round((stop.departure_time - Date.now() / 1000) / 60) < 1) {

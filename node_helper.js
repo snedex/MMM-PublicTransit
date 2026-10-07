@@ -4,10 +4,8 @@ const { URL } = require("url");
 module.exports = NodeHelper.create({
   async socketNotificationReceived(notification, payload) {
     
-    console.log("[DEBUG] activeHours: " + JSON.stringify(payload.activeHours));
-    
-    if (!payload.activeHours) { //This feels wrong
-      console.log("Active hours not defined, skipping API Calls.");
+    if (!payload.activeHours) {
+      console.log("Not in active hours or active hours not defined, skipping API Calls.");
       return;
     }
 
@@ -55,18 +53,14 @@ module.exports = NodeHelper.create({
                 const itinerary = mergedItinerary.itineraries.find(item => 
                   item.internal_itinerary_id === scheduleItem.internal_itinerary_id);
 
-                const item = {
+                result.push({
                   global_stop_id: route.global_stop_id,
                   stop_name: mergedItinerary.closest_stop.stop_name,
                   route_short_name: route.route_short_name, 
                   trip_headsign: itinerary.merged_headsign,
                   departure_time: scheduleItem.scheduled_departure_time,
                   route_id: route.real_time_route_id
-                };
-
-                console.log("[DEBUG] Schedule Item: " + JSON.stringify(item));
-
-                result.push(item);
+                });
               });
           });
         });
