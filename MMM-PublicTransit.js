@@ -25,19 +25,6 @@ Module.register("MMM-PublicTransit", {
     return ["publictransit.css"];
   },
 
-  /**
-   * Pseudo-constructor for our module. Initialize stuff here.
-   */
-  start: function() {
-    this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
-
-    sendFetchScheduleNotification(this);
-
-    setInterval(() => { sendFetchScheduleNotification(this); }, this.config.updateFrequency * 60 * 1000);
-
-    setInterval(() => { this.updateDom(); }, 15000);
-  },
-
   sendFetchScheduleNotification: function(contextThis) {
     contextThis.sendSocketNotification("FETCH_BUS_SCHEDULE", {
         apiKey: this.config.apiKey,
@@ -49,6 +36,16 @@ Module.register("MMM-PublicTransit", {
         locale: this.config.locale,
         activeHours: this.activeHours()
       });
+  },
+
+  start: function() {
+    this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
+
+    sendFetchScheduleNotification(this);
+
+    setInterval(() => { sendFetchScheduleNotification(this); }, this.config.updateFrequency * 60 * 1000);
+
+    setInterval(() => { this.updateDom(); }, 15000);
   },
 
   socketNotificationReceived: function (notification, payload) {
