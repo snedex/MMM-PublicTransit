@@ -31,9 +31,9 @@ Module.register("MMM-PublicTransit", {
   start: function() {
     this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
 
-    sendSocketNotification(this);
+    sendFetchScheduleNotification(this);
 
-    setInterval(() => { sendSocketNotification(this); }, this.config.updateFrequency * 60 * 1000);
+    setInterval(() => { sendFetchScheduleNotification(this); }, this.config.updateFrequency * 60 * 1000);
 
     setInterval(() => { this.updateDom(); }, 15000);
   },
