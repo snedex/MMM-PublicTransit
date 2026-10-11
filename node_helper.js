@@ -2,8 +2,8 @@ const NodeHelper = require("node_helper");
 const { URL } = require("url");
 
 module.exports = NodeHelper.create({
-  async socketNotificationReceived(notification, payload) {
-    
+
+  socketNotificationReceived: async function(notification, payload) { 
     if (!payload.activeHours) {
       console.log("Not in active hours or active hours not defined, skipping API Calls.");
       return;
@@ -11,8 +11,6 @@ module.exports = NodeHelper.create({
 
     if (notification === "FETCH_BUS_SCHEDULE") {
       try {
-
-        console.log("[DEBUG] Schedule API call.");
 
         const baseUrl = `https://external.transitapp.com/${payload.api_version}/public/stop_departures`;
         const url = new URL(baseUrl);
@@ -68,7 +66,7 @@ module.exports = NodeHelper.create({
         });
 
         // Sort the result by departure_time
-        result.sort((a, b) => a.departure_time - b.departure_time);
+        //result.sort((a, b) => a.departure_time - b.departure_time);
         this.sendSocketNotification("UPDATE_BUS_SCHEDULE", result);
   
       } catch (error) {

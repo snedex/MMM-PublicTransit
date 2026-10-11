@@ -1,16 +1,17 @@
 Module.register("MMM-PublicTransit", {
   defaults: {
-    logosize: "40px",
+    logosize: "30px",
     showlogo: true,
     global_stop_ids: "",
-    apiKey: "",
+    apiKey: "", 
     displayedEntries: 3, // Number of bus times to display (default for all stations)
     fontsize: "24px", // Font size for bus times
     logoLocation: "flex-end", // Logo alignment (flex-start, flex-end)
-    activeHoursStart: 6,  // Active hours for the module (24-hour format)
-    activeHoursEnd: 22,
+    activeHoursStart: 6,  // Active hours for the module (24-hour format 0-24)
+    activeHoursEnd: 22, //End range is exclusive, if you want 10pm departures specify the hour after 23
     activeDays: [0, 1, 2, 3, 4, 5, 6], // Active days of the week (0 = Sunday, 6 = Saturday)
     updateFrequency: 30, // Update frequency in minutes
+    maxDepartures: 5, //The max number of departures to fetch for a stop
     showHeadSign: false, // If true: shows "Number + Name". If false: shows "Number".
     showTime: false, // If true: shows absolute time (e.g. 12:45pm) next to minutes.
     stationNames: {}, // Custom station names: { 'ABC:1234': 'My Station Name' }
@@ -20,29 +21,25 @@ Module.register("MMM-PublicTransit", {
     apiVersion: "v4"
   },
 
-  getStyles() {
+  getStyles: function() {
     return ["publictransit.css"];
   },
 
   /**
    * Pseudo-constructor for our module. Initialize stuff here.
    */
-  start() {
+  start: function() {
     this.busSchedule = [{ route_short_name: "Loading...", departure_time: Date.now() / 1000 + 60, trip_headsign: "" }];
 
-    this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
-      apiKey: this.config.apiKey,
-      api_version: this.config.apiVersion,
-      remove_cancelled: this.config.removeCancelled ?? true,
-      max_num_departures: this.config.displayedEntries,
-      global_stop_ids: this.config.global_stop_ids,
-      showHeadSign: this.config.showHeadSign,
-      locale: this.config.locale,
-      activeHours: this.activeHours()
-    });
+    sendSocketNotification(this);
 
-    setInterval(() => {
-      this.sendSocketNotification("FETCH_BUS_SCHEDULE", {
+    setInterval(() => { sendSocketNotification(this); }, this.config.updateFrequency * 60 * 1000);
+
+    setInterval(() => { this.updateDom(); }, 15000);
+  },
+
+  sendFetchScheduleNotification: function(contextThis) {
+    contextThis.sendSocketNotification("FETCH_BUS_SCHEDULE", {
         apiKey: this.config.apiKey,
         api_version: this.config.apiVersion,
         remove_cancelled: this.config.removeCancelled ?? true,
@@ -52,9 +49,6 @@ Module.register("MMM-PublicTransit", {
         locale: this.config.locale,
         activeHours: this.activeHours()
       });
-    }, this.config.updateFrequency * 60 * 1000);
-
-    setInterval(() => { this.updateDom(); }, 3000);
   },
 
   socketNotificationReceived: function (notification, payload) {
@@ -64,7 +58,7 @@ Module.register("MMM-PublicTransit", {
     }
   },
 
-  getDom() {
+  getDom: function() {
 
     // Create the main container div
     const container = document.createElement("div");
@@ -129,15 +123,8 @@ Module.register("MMM-PublicTransit", {
       let entryCount = 0;
       let departureIndex = 0;
 
-      //Are we actually getting the departures for each stop?
-      console.log("[DEBUG] station departures: " + JSON.stringify(station.departures));
-
       while (departureIndex < station.departures.length && entryCount < entriesForStation) {
         let stop = station.departures[departureIndex];
-
-        //Are are filtering these out incorrectly?
-        console.log("[DEBUG] sanity check departure time: " + stop.departure_time);
-        console.log("[DEBUG] sanity check filter time: " + (Date.now() / 1000));
 
         // Filter out past buses (tolerance 1 min)
         if (Math.round((stop.departure_time - Date.now() / 1000) / 60) < 1) {
@@ -155,7 +142,7 @@ Module.register("MMM-PublicTransit", {
         routeInfo.style.marginBottom = "2px";
 
         // --- LEFT SIDE: Route Number + Headsign ---
-        const routeName = document.createElement("span");
+        const routeName = document.createElement("div");
         routeName.style.textAlign = "left";
 
         // 1. Get Route Number (fallback to route_id if short_name is empty)
@@ -163,6 +150,7 @@ Module.register("MMM-PublicTransit", {
 
         // Add dynamic class for CSS coloring (e.g. .route-100)
         routeName.className = "route-" + String(busNumber).replace(/\s/g, "");
+        let routeNameHtml = `<span class="shortname">${busNumber}</span>`;
 
         // 2. Logic to display Headsign
         let headSignHTML = "";
@@ -172,7 +160,7 @@ Module.register("MMM-PublicTransit", {
           headSignHTML = ' <span class="headsign">' + stop.trip_headsign + "</span>";
         }
 
-        routeName.innerHTML = busNumber + headSignHTML;
+        routeName.innerHTML = routeNameHtml + headSignHTML;
 
         // --- RIGHT SIDE: Minutes + Absolute Time ---
         const departureTime = document.createElement("span");
@@ -187,7 +175,7 @@ Module.register("MMM-PublicTransit", {
         if (this.config.showTime) {
           let dateObj = new Date(stop.departure_time * 1000);
           let timeStr = dateObj
-            .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+            .toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit", hour12: false })
             .toLowerCase();
           timeHTML += '<span class="time-small"> - ' + timeStr + "</span>";
         }
@@ -227,7 +215,7 @@ Module.register("MMM-PublicTransit", {
     return container;
   },
 
-  activeHours() {
+  activeHours: function() {
     const now = new Date();
     const currentHour = now.getHours();
     const currentDay = now.getDay();
